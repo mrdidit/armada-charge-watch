@@ -20,8 +20,11 @@ Investigation snapshot: **21 October 2026**, KONKR Pocket FIT Elite, Snapdragon 
 | --- | --- | --- |
 | Earlier native-limit test during Charging Modes development, policy service stopped | 60% / 70% | About 4m 45s later: `Over voltage`; reported `voltage_max` fell from 4.380 V to 4.035 V. |
 | Native Steam limit, Armada `20261021.659cfa4`, Linux `7.2.6`; separate Charging Modes implementation absent | 52% / 55% | 7m 12s later: `Over voltage`; reported `voltage_max` fell from 4.380 V to 3.929 V. |
+| Native Steam limit, same image after reboot | 52% / 70% | 5m 24s later: `Over voltage`; reported `voltage_max` fell from 4.380 V to 4.068 V. |
 
 The 55% test retained 1,090 samples at one-second intervals with no sample gaps. Status changed from `Charging` to `Full` with USB power still online. At the fault, reported instantaneous voltage was **3.924130 V**, below the contemporaneous reported ceiling; voltage, current and temperature were unchanged from the preceding healthy sample. Unplugging restored the 4.380 V ceiling, while the health flag remained until reboot.
+
+The separate 70% test retained **1,275 samples**, also without gaps. Status changed to `Full` at **10:28:37 Dublin**, followed by the fault at **10:34:01**. The actual **52/70** thresholds stayed unchanged and USB remained online. Instantaneous voltage was **4.063290 V**, again below the new reported ceiling and unchanged from the preceding healthy sample. After disconnection, the ceiling returned to 4.380 V while `Over voltage` remained set.
 
 The newer test image includes [Armada PR #758](https://github.com/armada-os/armada/pull/758), which integrates native charge limits with Steam. The repeated symptom does not establish that PR as the cause: the earlier test predates it, and the image base and threshold pair differ. These readings establish a firmware-reported health fault, not physical overcharging or its cause.
 
@@ -44,7 +47,7 @@ The earlier `power_now=48942505` reading also implies 48.94 W in standard sysfs 
 
 ## Run a capture
 
-1. Download and extract [armada-charge-watch-v0.1.0.zip](https://github.com/mrdidit/armada-charge-watch/releases/download/v0.1.0/armada-charge-watch-v0.1.0.zip).
+1. Download and extract [armada-charge-watch-v0.1.1.zip](https://github.com/mrdidit/armada-charge-watch/releases/download/v0.1.1/armada-charge-watch-v0.1.1.zip).
 2. Open a terminal in the extracted folder and inspect the selected battery:
 
    ```sh
@@ -91,7 +94,7 @@ Nothing is uploaded automatically. Default metadata omits hostname and battery s
 
 ## Validation
 
-Thirty offline tests cover battery selection, missing properties, delayed faults, stop/hold analysis, clock discontinuities, read-only collection and output bounds. The portable summarizer also reproduced the archived KPFE 55% capture result. The original collector captured the hardware observations above; live capture with this portable release and hardware testing on other models remain outstanding.
+Thirty offline tests cover battery selection, missing properties, delayed faults, stop/hold analysis, clock discontinuities, read-only collection and output bounds. The portable summarizer also reproduced the archived KPFE 55% and 70% capture results. The original collector captured the hardware observations above; live capture with this portable release and hardware testing on other models remain outstanding.
 
 ```sh
 python3 -m unittest -v test_charge_watch.py
