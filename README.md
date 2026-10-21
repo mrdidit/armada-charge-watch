@@ -32,22 +32,26 @@ The newer test image includes [Armada PR #758](https://github.com/armada-os/arma
 
 | Item | Finding |
 | --- | --- |
-| Confirmed battery in the tested KPFE | Two **4,100 mAh cells in series (2S)**: **4,100 mAh pack capacity** at twice the cell voltage, equivalent in energy to **8,200 mAh at single-cell voltage**. |
-| Other shipped battery variant | Two **4,200 mAh cells in series**: 4,200 mAh pack capacity, equivalent to 8,400 mAh at single-cell voltage. This variant has not been tested here. |
+| Cell capacity label | **4,100 mAh rated / 4,200 mAh nominal** on the same cells. These are two ratings, not evidence of two battery variants. |
+| Confirmed pack arrangement | Two cells in series (**2S**): **4,100 mAh rated / 4,200 mAh nominal** at twice the cell voltage, equivalent in energy to **8,200 / 8,400 mAh at single-cell voltage**. |
 | Firmware model name | `BELOVED_8200MAH_37W_CXD2273_KR02` |
-| Reported design capacity | `charge_full_design=8400000` µAh: **8,400 mAh**, despite the confirmed 4,100 mAh cells and the `8200MAH` name. |
+| Reported design capacity | `charge_full_design=8400000` µAh: **8,400 mAh**, consistent numerically with the nominal energy-equivalent rating. |
 | Reported full-capacity estimate | **9,272 mAh** in the earlier snapshot; **9,261 mAh** in the 21 October capture. These are gauge/firmware estimates, not established physical capacity. |
 | Voltage and current | Voltage is exposed on a single-cell scale. Actual pack-current versus normalized-current scaling remains unresolved. |
 
-The audited `qcom_battmgr` driver forwards the design/full-capacity values from Qualcomm firmware; no hardcoded 8,400 value or driver-side 2S conversion was found. The installed ADSP binary contains an 8,400 capacity-like field beside the exact battery model and separate likely charging-policy tables containing 8,400 and 4,380 values. This supports a possible profile mismatch, but active table selection and effective charging parameters remain unverified.
+**Capacity interpretation corrected on 21 October 2026:** the cell label identifies rated and nominal capacities on the same battery. The `8200MAH` name and 8,400 mAh design value can therefore reflect different ratings; those numbers alone do not establish a battery-profile mismatch. Earlier releases described separate cell variants and a design discrepancy; that interpretation is superseded.
 
-The design discrepancy is approximately **2.44%**. It does not by itself explain the earlier 9,272 mAh estimate, which is **10.38% above the configured design** and **13.07% above the 8,200 mAh energy-equivalent capacity**. Whether that estimate was learned, initialized or restored remains unresolved. A causal connection between the profile discrepancy and the `Over voltage` flag is unproven.
+The audited `qcom_battmgr` driver forwards the design/full-capacity values from Qualcomm firmware; no hardcoded 8,400 value or driver-side 2S conversion was found. The installed ADSP binary contains an 8,400 capacity-like field beside the exact battery model and separate likely charging-policy tables containing 8,400 and 4,380 values. Active table selection and effective charging parameters remain unverified.
+
+A read-only Android comparison on the same KPFE also returned **8,400 mAh design / 9,261 mAh full capacity** and the same model name. The Android ADSP executable differs from Armada's, but the inspected model/capacity fields and ADSP device-tree payload match. This USB-attached inventory did not test Android's charge-limit hold behaviour.
+
+The **9,261–9,272 mAh** full-capacity estimates remain unexplained: **10.25–10.38% above the 8,400 mAh nominal equivalent**. Whether these estimates were learned, initialized or restored remains unresolved. Design and full-capacity readings stayed unchanged across the captured 55% and 70% faults. No causal connection between the capacity estimate and the delayed `Over voltage` flag has been established.
 
 The earlier `power_now=48942505` reading also implies 48.94 W in standard sysfs units, while reported voltage × current gives about 1.99 W. Doubling voltage would give about 3.98 W only if current is actual series-pack current. The tool retains these raw fields without assuming a conversion or treating `power_now` as verified instantaneous consumption.
 
 ## Run a capture
 
-1. Download and extract [armada-charge-watch-v0.1.1.zip](https://github.com/mrdidit/armada-charge-watch/releases/download/v0.1.1/armada-charge-watch-v0.1.1.zip).
+1. Download and extract [armada-charge-watch-v0.1.2.zip](https://github.com/mrdidit/armada-charge-watch/releases/download/v0.1.2/armada-charge-watch-v0.1.2.zip).
 2. Open a terminal in the extracted folder and inspect the selected battery:
 
    ```sh
